@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "afxwin.h"
 
 
 // CMail_ServerDlg 对话框
@@ -31,4 +32,9 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	// 显示邮件信息
+	CEdit mail_text_ctrl;
+	// 日志显示
+	CEdit log_list_ctrl;
 };

@@ -58,6 +58,8 @@ CMail_ServerDlg::CMail_ServerDlg(CWnd* pParent /*=NULL*/)
 void CMail_ServerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDIT1, mail_text_ctrl);
+	DDX_Control(pDX, IDC_EDIT2, log_list_ctrl);
 }
 
 BEGIN_MESSAGE_MAP(CMail_ServerDlg, CDialogEx)
@@ -99,7 +101,13 @@ BOOL CMail_ServerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-
+	CString str;
+	for (int i = 0; i < 30; i++)
+	{
+		str.Append(L"asgaasl获取指定字符索引所在行的字节长度（行尾的回车和换行符不计算在内），参数nLine 说明了为字符索引。如果nLine 的值为-1，\r\n");
+	}
+	mail_text_ctrl.SetWindowTextW(str);
+	log_list_ctrl.SetWindowTextW(str);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -151,4 +159,5 @@ HCURSOR CMail_ServerDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
+
 
