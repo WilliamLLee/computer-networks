@@ -13,3 +13,8 @@
 客户端的基本功能是选择输入服务器的IP地址和接收端口号，同时输入发送的命令，显示服务器返回的结果，在设定好命令和IP后点击发送给服务器端发送报文。
 
 ![客户端基本要求](./proj1_client-server_program/figures/客户端基本要求.png)
+
+## 实验二：IP 数据包捕获程序
+通过`WINPCAP`工具捕获网卡上的数据包并进行选择性的解析，并且能够像`wireshark`一样显示数据报相关信息。
+- 实现界面大致如下所示：
+![界面](./proj2_packet_capture/figures/screen_v1.0.png)
