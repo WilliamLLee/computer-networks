@@ -21,9 +21,6 @@ void Client_Socket::OnReceive(int nErrorCode)
 	UINT Server_Port;
 	int m_length = sizeof(lBuffer);
 	m_length = ReceiveFrom(lBuffer, m_length, Server_IP, Server_Port, 0);
-	/*CString str;
-	str.Format(L"%s,%s,%d", lBuffer, Server_IP, Server_Port);
-	pDlg->MessageBox(str);*/
 	if (m_length != -1)
 	{
 		pDlg->response_m = lBuffer;
