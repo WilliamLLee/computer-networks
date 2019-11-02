@@ -51,6 +51,7 @@ END_MESSAGE_MAP()
 
 CMail_ServerDlg::CMail_ServerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_MAIL_SERVER_DIALOG, pParent)
+	, m_mail_sender(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -59,13 +60,14 @@ void CMail_ServerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EDIT1, mail_text_ctrl);
-	DDX_Control(pDX, IDC_EDIT2, log_list_ctrl);
+	DDX_Control(pDX, IDC_LIST1, log_list_ctrl);
 }
 
 BEGIN_MESSAGE_MAP(CMail_ServerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -101,13 +103,18 @@ BOOL CMail_ServerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	CString str;
-	for (int i = 0; i < 30; i++)
-	{
-		str.Append(L"asgaasl获取指定字符索引所在行的字节长度（行尾的回车和换行符不计算在内），参数nLine 说明了为字符索引。如果nLine 的值为-1，\r\n");
+	//创建TCP套接字，绑定25端口
+	BOOL bFlag = SMTP_Server.Create(25, SOCK_STREAM, FD_ACCEPT | FD_READ | FD_WRITE );
+	if (!bFlag) {
+		log_list_ctrl.InsertString(log_list_ctrl.GetCount(),L"***SMTP服务器启动失败");
 	}
-	mail_text_ctrl.SetWindowTextW(str);
-	log_list_ctrl.SetWindowTextW(str);
+	else
+	{
+		log_list_ctrl.InsertString(log_list_ctrl.GetCount(), L"***SMTP服务器准备好");
+	}
+	log_list_ctrl.InsertString(log_list_ctrl.GetCount(), L"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+	if (!SMTP_Server.Listen(1)) //设为侦听连接请求，最多允许一个连接
+		log_list_ctrl.InsertString(log_list_ctrl.GetCount(), L"侦听25端口设置失败,端口可能已被占据");
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -160,4 +167,17 @@ HCURSOR CMail_ServerDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+//转发邮件线程控制函数
+UINT Send_Mails(PVOID hWnd)
+{
+	return 0;
+}
 
+void CMail_ServerDlg::OnDestroy()
+{
+	CDialogEx::OnDestroy();
+
+	// TODO: 在此处添加消息处理程序代码
+	if(SMTP_Server!= INVALID_SOCKET)
+		SMTP_Server.Close();
+}

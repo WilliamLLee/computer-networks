@@ -117,7 +117,7 @@ BOOL CPacket_CaptureDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 
 	/*
-	* 获取当前主机的设备列表，基于pcap_findalldevs_ex()函数
+	* 获取当前主机的设备列表，基于pcap_findalldevs_ex()函数  
 	* 将返回的设备列表指针赋给类类中定义的alldevs变量 
 	*/
 	int flag = pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf);		//获取设备列表
@@ -217,23 +217,35 @@ void CPacket_CaptureDlg::OnBnClickedCancel()
 
 	//释放设备列表
 	pcap_freealldevs(alldevs);
-
+	//如果线程未关闭则关闭线程
+	stop_thread = 1;				//重置参数为1
 	CDialogEx::OnCancel();
 }
 
 //线程执行函数，进行数据包的捕获工作
 UINT Capturer(PVOID hwnd) {
-	pcap_pkthdr* pkt_header;		//记录捕获的数据包头
-	const u_char* pkt_data;			//记录捕获的数据包
+	pcap_pkthdr* pkt_header = NULL;		//记录捕获的数据包头
+	const u_char* pkt_data = NULL;			//记录捕获的数据包
 	CPacket_CaptureDlg* Dlg = (CPacket_CaptureDlg*)AfxGetApp()->m_pMainWnd;  //获取主窗口句柄
 	while (!Dlg->stop_thread)			//循环捕获网络数据包，通过参数stop_thread 控制停止捕获
 	{
 		//捕获数据包的主体代码，利用pcap_next_ex函数执行
-		int flag = pcap_next_ex(Dlg->opened_pcap,		//pcap_t指针，说明捕获那个网卡上的数据包
-				&pkt_header,		//pcap_pkthdr 指针，记录数据包相关信息
-				&pkt_data			//uchar*指针，保存数据包数据
-			);
-		if (flag == 1)		//成功捕获数据
+		int flag = 0;
+		TRY{
+			flag = pcap_next_ex(Dlg->opened_pcap,	//pcap_t指针，说明捕获那个网卡上的数据包
+				&pkt_header,						//pcap_pkthdr 指针，记录数据包相关信息
+				&pkt_data							//uchar*指针，保存数据包数据
+				);
+		}CATCH(CException, e)
+		{
+			TCHAR error[1024](L"\0");
+			e->GetErrorMessage(error, 1024);
+			Dlg->packet_list_ctrl.InsertString(Dlg->packet_list_ctrl.GetCount(), L"$$$$$捕获异常"+(CString)error);
+			memset(error, 0, 1024);
+			continue;
+		}END_CATCH;
+		//成功捕获数据,并对捕获的函数进行分类
+		if (flag == 1)		
 		{
 			Dlg->pkthdr_list.AddTail(pkt_header);
 			Dlg->pktdata_list.AddTail(pkt_data);
@@ -245,11 +257,12 @@ UINT Capturer(PVOID hwnd) {
 		}
 		else if (flag == -1)
 		{
-			Dlg->MessageBox(L"执行错误");
+			Dlg->MessageBox(L"数据报捕获函数执行错误！");
 		}
 	}
 	Dlg->stop_thread = 0;				//重置参数为0
-	Dlg->MessageBox(L"线程终止");		//提示停止捕获数据包
+	Dlg->packet_list_ctrl.InsertString(Dlg->packet_list_ctrl.GetCount(), L"捕获数据包线程停止！");
+	Dlg->packet_list_ctrl.InsertString(Dlg->packet_list_ctrl.GetCount(), L"_______________________________________________________________________________________________________________________");;		//提示停止捕获数据包
 	return 1;
 }
 
@@ -264,6 +277,9 @@ void CPacket_CaptureDlg::OnBnClickedButton1()
 		MessageBox(L"未选择设备接口，请双击设备接口列表选项进行选择！",L"WARNING", MB_OKCANCEL | MB_ICONWARNING);
 		return;
 	}
+	//清空之前数据包信息栏中的信息
+	while (packet_list_ctrl.GetCount())
+		packet_list_ctrl.DeleteString(0);
 	//打开设备接口
 	opened_pcap = pcap_open(d->name,			//设备接口名，直接从类成员d指针中获取，一旦选择之后，d指针指向选择的设备接口
 						4096,				//获取数据包的最大长度
@@ -281,6 +297,9 @@ void CPacket_CaptureDlg::OnBnClickedButton1()
 		//成功创建线程之后将按钮设置为不可点击状态
 		GetDlgItem(IDC_BUTTON1)->EnableWindow(false);
 		GetDlgItem(IDC_BUTTON2)->EnableWindow(true);
+		//输出日志信息
+		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), L"监听  " + (CString)d->description);
+		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), L"_______________________________________________________________________________________________________________________");
 		//MessageBox(CString(d->name));
 	}
 }
@@ -289,23 +308,45 @@ void CPacket_CaptureDlg::OnBnClickedButton1()
 // 处理捕获数据包的函数,对数据包进行解析
 LRESULT CPacket_CaptureDlg::OnPacket(WPARAM wParam, LPARAM lParam)
 {
+	TRY{
+	//从缓冲队列中提取数据报文
 	pcap_pkthdr* pkt_header = pkthdr_list.GetHead();		//记录捕获的数据包头
 	const u_char* pkt_data = pktdata_list.GetHead();			//记录捕获的数据包
-	pkthdr_list.RemoveHead();
-	pktdata_list.RemoveHead();
+	//获取帧头部保存的时间戳数据和类型数据
 	CString   header_s,data_s;
 	char timebuf[128];
 	time_t t(pkt_header->ts.tv_sec);
 	strftime(timebuf, 64, "%Y-%m-%d %H:%M:%S", localtime(&t));
-	header_s.Format(L"时间戳:%s,CAPLEN:%d，LEN:%d",CString(timebuf), pkt_header->caplen,ntohs(pkt_header->len));
-	packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), header_s);
-	Data_t* Data = (Data_t*)pkt_data;
-	if (ntohs(Data->FrameHeader.FrameType) ==0x0800)
+	//数据格式化
+	header_s.Format(L"%s.%d,len:%d",CString(timebuf),pkt_header->ts.tv_usec,pkt_header->caplen);
+	FrameHeader_t* FHeader = (FrameHeader_t*)pkt_data;
+	//过滤协议报文
+	if(ntohs(FHeader->FrameType) == WORD(0x0800))			//ntohs(FHeader->FrameType) == WORD(0x0800)
 	{
-		data_s.Format(L"协议类型:0x%04x,目的地址:%s,源地址:%s,校验和:%04x,计算的校验码:%04x,标识符:%04x", ntohs(Data->FrameHeader.FrameType), (CString)Data->FrameHeader.DesMAC, (CString)Data->FrameHeader.SrcMAC, ntohs(Data->IPHeader.Checksum), IPHeader_ckeck((WORD*)(&Data->IPHeader)),Data->IPHeader.ID);
+		Data_t* Data = (Data_t*)pkt_data;
+		//显示时间数据报头部信息
+		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), header_s);
+		//数据格式化
+		data_s.Format(L"标识:0x%04x           头部校验和:0x%04x           计算出的头部校验和:0x%04x", ntohs(Data->IPHeader.ID), ntohs(Data->IPHeader.Checksum), IPHeader_ckeck((WORD*)(&Data->IPHeader)));
+		//数据阵头部校验信息等
 		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), data_s);
+		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), L"_______________________________________________________________________________________________________________________");
+		/*if (ntohs(Data->IPHeader.Checksum) != IPHeader_ckeck((WORD*)(&Data->IPHeader)))
+		{
+			packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), L"##################数据报错误!########################");
+		}*/
 	}
-	
+
+	pkthdr_list.RemoveHead();							//移除头部数据包
+	pktdata_list.RemoveHead();
+
+	}CATCH(CException, e)
+	{
+		TCHAR error[1024](L"\0");
+		e->GetErrorMessage(error,1024);
+		packet_list_ctrl.InsertString(packet_list_ctrl.GetCount(), L"$$$$$处理异常"+(CString)error);
+		memset(error, 0, 1024);
+	}END_CATCH;
 	//MessageBox(L"这里是分析函数！");
 	return LRESULT();
 }
@@ -331,7 +372,7 @@ WORD CPacket_CaptureDlg::IPHeader_ckeck(WORD* IPHeader)
 	{
 		if (i == 5) continue;			//跳过检验和字
 		if ((ans + IPHeader[i])%0x10000 < ans)
-			ans = ans + IPHeader[i] + 1;
+			ans = (ans + IPHeader[i]) % 0x10000 + 1;
 		else
 			ans += IPHeader[i];
 		//str.Format(L"%08x,%08x,%08x,%d", ans, IPHeader[i], ans + IPHeader[i], ans + IPHeader[i]<ans);
