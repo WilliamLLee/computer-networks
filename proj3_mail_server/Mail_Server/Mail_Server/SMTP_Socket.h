@@ -1,6 +1,6 @@
 #pragma once
 #include "afxsock.h"
-#define bufferlen 8192
+#define bufferlen 1440
 
 //自定义socket类，负责完成邮件服务器相关数据交互和报文接收工作
 class SMTP_Socket :					
@@ -17,5 +17,7 @@ public:
 	bool begin_data_recv;
 	//接收消息响应函数
 	virtual void OnReceive(int nErrorCode);
+	// 记录本次连接接收的报文数据
+	CString recv_post;
 };
 
