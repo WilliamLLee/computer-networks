@@ -201,7 +201,7 @@ void CPacket_CaptureDlg::OnLbnDblclkList1()			//显示设备接口详细信息
 	EtherNet_interface_ctrl.GetText(sno,sitem);
 	//将设备接口名写入详细信息栏
 	interface_detail_ctrl.InsertString(0, sitem);
-	//显示设备接口详细信息
+	//显示设备接口详细信息，同时选中的接口地址赋值给了类成员d
 	for (d = alldevs; d != NULL; d = d->next)
 		if ((CString)(d->name) == sitem)
 		{
