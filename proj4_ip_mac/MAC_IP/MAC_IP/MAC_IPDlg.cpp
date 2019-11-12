@@ -202,13 +202,12 @@ HCURSOR CMAC_IPDlg::OnQueryDragIcon()
 void CMAC_IPDlg::OnBnClickedGetipMac()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CString IP_Addr;
 	DWORD IP;
-	IPAddr_ctrl.GetWindowTextA(IP_Addr);
-	MessageBox(IP_Addr);
 	IPAddr_ctrl.GetAddress(IP);   //获取输入的IP地址
-	if(opened_pcap!=NULL)
-		mk_ARPFrame(host_MAC, GetAddr_IP(a->addr), NULL, IP, host_MAC);  //发送获取该IP地址映射关系的ARP报文
+	if (opened_pcap != NULL)
+	{
+		mk_ARPFrame(host_MAC, GetAddr_IP(a->addr), NULL, ntohl(IP), host_MAC);  //发送获取该IP地址映射关系的ARP报文
+	}
 	else {
 		MessageBox("未选择设备接口！");
 	}
@@ -318,6 +317,9 @@ void CMAC_IPDlg::OnLbnDblclkList1()
 													//CString str;
 													//str.Format("0x%08x.0x%08x.0x%02x", SendIP_t, RecvIP_t,SendHa_t[0]);
 													//MessageBox(str);
+	//CString str;
+	//str.Format("%08x,%08x", GetAddr_IP(a->addr), GetAddr_IP(a->addr));
+	//MessageBox("接收到ARP数据报文" + str);
 	mk_ARPFrame(SendHa_t, SendIP_t, NULL, RecvIP_t, SendHa_t);   //发送一个ARP 报文	
 }
 
@@ -366,12 +368,12 @@ UINT Capturer(PVOID hwnd) {
 			if (ntohs(FHeader->FrameType) == WORD(0x0806))//接收到ARP报文
 			{
 				ARPFrame_t* ARP = (ARPFrame_t*)pkt_data;
-				CString str;
-				str.Format("%04x,%04x", ARP->Openration,ntohs(ARP->Openration));
-				Dlg->MessageBox("接收到ARP数据报文" + str);
 				if (ntohs(ARP->Openration) == 2)     //接收到ARP应答报文
 				{
-					if (ntohs(ARP->SendIP == Dlg->GetAddr_IP(Dlg->a->addr)))  //如果获取的ARP响应来自本机，则可通过该ARP响应获取本机的MAC地址
+					/*CString str;
+					str.Format("%08x,%08x", ARP->SendIP, Dlg->GetAddr_IP(Dlg->a->addr));
+					Dlg->MessageBox("接收到ARP数据报文" + str);*/
+					if (ARP->SendIP == Dlg->GetAddr_IP(Dlg->a->addr))  //如果获取的ARP响应来自本机，则可通过该ARP响应获取本机的MAC地址
 					{
 						Dlg->host_MAC = ARP->SendHa;
 						//CString str;
@@ -389,7 +391,7 @@ UINT Capturer(PVOID hwnd) {
 						//Dlg->PostMessageA(WM_PACKET, 0, 0);
 					}
 					else {
-						Dlg->MessageBox("接收到非本机发送的ARP报文");
+						//Dlg->MessageBox("接收到非本机发送的ARP报文");
 						Dlg->pkthdr_list.AddTail(pkt_header);   
 						Dlg->pktdata_list.AddTail(pkt_data);     //将报文传入缓冲区
 						Dlg->PostMessageA(WM_PACKET, 0, 0);      //发送报文接收成功消息触发报文解析函数  
