@@ -341,7 +341,7 @@ CString CMAC_IPDlg::convert_addr_to_str(sockaddr* addr)
 
 //线程执行函数，进行数据包的捕获工作
 UINT Capturer(PVOID hwnd) {
-	pcap_pkthdr* pkt_header = NULL;		//记录捕获的数据包头
+	pcap_pkthdr* pkt_header = NULL;							//记录捕获的数据包头
 	const u_char* pkt_data = NULL;			//记录捕获的数据包
 	CMAC_IPDlg* Dlg = (CMAC_IPDlg*)AfxGetApp()->m_pMainWnd;  //获取主窗口句柄
 	while (!Dlg->stop_thread)			//循环捕获网络数据包，通过参数stop_thread 控制停止捕获
