@@ -6,6 +6,10 @@
 # 不显示latex文件
 latex/
 
+# 不现实压缩包文件
+*.zip
+*.rar
+
 # User-specific files
 *.suo
 *.user

@@ -1,0 +1,14 @@
+//Ð´ÎÄ¼þÄÚÈÝ
+bool writeFile(CString filePath, u_char* content, long long int len)
+{
+	AfxMessageBox("+++++"+CString(content));
+	assert(content != NULL);
+	CFile file;
+
+	file.Open(filePath, CFile::modeCreate | CFile::modeWrite, NULL);
+
+	file.Write(content, len);
+
+	file.Close();
+	return true;
+}

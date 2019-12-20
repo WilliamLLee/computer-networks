@@ -24,3 +24,9 @@
 ![界面](./proj3_mail_server/figures/接收显示界面.png)
 ## 实验四：捕获ARP协议获取IP-MAC地址映射关系
 ![实验要求](./proj4_ip_mac/figures/requires.png)
+
+## 实验五：简单路由程序，支持ping命令和Tracert命令
+
+
+## 实验六：实现类似于FTP协议的文件传输协议
+

@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{86569671-A60F-47DB-B820-7DDABA45CCD7}</ProjectGuid>
-    <RootNamespace>Mail_Server</RootNamespace>
+    <ProjectGuid>{FE6F8B6E-36BD-4B03-9AAC-5CE2274F76C4}</ProjectGuid>
+    <RootNamespace>FTP_Server</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
@@ -29,7 +29,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -189,19 +189,19 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="base64.h" />
-    <ClInclude Include="Mail_Server.h" />
-    <ClInclude Include="Mail_ServerDlg.h" />
+    <ClInclude Include="defines.h" />
+    <ClInclude Include="FTP_Server.h" />
+    <ClInclude Include="FTP_ServerDlg.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="SMTP_Socket.h" />
+    <ClInclude Include="ServerSocket.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="base64.cpp" />
-    <ClCompile Include="Mail_Server.cpp" />
-    <ClCompile Include="Mail_ServerDlg.cpp" />
-    <ClCompile Include="SMTP_Socket.cpp" />
+    <ClCompile Include="defines.cpp" />
+    <ClCompile Include="FTP_Server.cpp" />
+    <ClCompile Include="FTP_ServerDlg.cpp" />
+    <ClCompile Include="ServerSocket.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -210,20 +210,20 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Mail_Server.rc" />
+    <ResourceCompile Include="FTP_Server.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\Mail_Server.rc2" />
+    <None Include="res\FTP_Server.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\Mail_Server.ico" />
+    <Image Include="res\FTP_Server.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties RESOURCE_FILE="Mail_Server.rc" />
+      <UserProperties RESOURCE_FILE="FTP_Server.rc" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
